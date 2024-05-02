@@ -61,34 +61,57 @@ osg::Geometry* createTexturedCube(float size) {
     return geom.release();
 }
 
-int main() {
-    // Crear la geometría del cubo
+osg::Geometry* createIndividualCubes(){
+    // Crear la geometría del cubo y aplicar la textura
     osg::ref_ptr<osg::Geometry> cubeGeometry = createTexturedCube(1.0f);
-
-    // Carga la textura
     osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
     osg::ref_ptr<osg::Image> image = osgDB::readImageFile("texture.jpg");
-    if (image) {
-        texture->setImage(image.get());
-    } else {
-        osg::notify(osg::NOTICE) << "Failed to load texture." << std::endl;
-        return 1;
+    if (!image) {
+        osg::notify(osg::NOTICE) << "Failed to load texture for cube 1." << std::endl;
+        return nullptr; // Retorna nullptr si la textura no puede ser cargada
     }
-
-    // Aplica la textura al cubo
+    texture->setImage(image.get());
     cubeGeometry->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture.get());
 
-    // Crear un nodo Geode para contener la geometría
-    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-    geode->addDrawable(cubeGeometry.get());
+    return cubeGeometry.release(); // Liberamos la memoria del puntero antes de retornarlo
+}
 
-    // Crear un nodo MatrixTransform para manejar la rotación
-    osg::ref_ptr<osg::MatrixTransform> rotationTransform = new osg::MatrixTransform;
-    rotationTransform->addChild(geode.get());
+int main() {
+
+    // Crear la geometría del primer cubo y aplicar la textura
+    osg::ref_ptr<osg::Geometry> cubeGeometry1 = createIndividualCubes();
+    if (!cubeGeometry1) {
+        return 1; // Salimos del programa si la geometría del cubo no pudo ser creada correctamente
+    }
+
+    // Crear la geometría del segundo cubo y aplicar la textura
+    osg::ref_ptr<osg::Geometry> cubeGeometry2 = createIndividualCubes();
+    if (!cubeGeometry2) {
+        return 1; // Salimos del programa si la geometría del cubo no pudo ser creada correctamente
+    }
+
+    // Crear nodos Geode para contener las geometrías
+    osg::ref_ptr<osg::Geode> geode1 = new osg::Geode;
+    osg::ref_ptr<osg::Geode> geode2 = new osg::Geode;
+    geode1->addDrawable(cubeGeometry1.get());
+    geode2->addDrawable(cubeGeometry2.get());
+
+    // Crear nodos MatrixTransform para manejar la posición y rotación de los cubos
+    osg::ref_ptr<osg::MatrixTransform> transform1 = new osg::MatrixTransform;
+    osg::ref_ptr<osg::MatrixTransform> transform2 = new osg::MatrixTransform;
+    transform1->addChild(geode1.get());
+    transform2->addChild(geode2.get());
+
+    // Establecer las posiciones de los cubos
+    osg::Matrix matrix1 = osg::Matrix::translate(osg::Vec3(-2.0, 0.0, 0.0)); // Posición del primer cubo
+    osg::Matrix matrix2 = osg::Matrix::translate(osg::Vec3(2.0, 0.0, 0.0)); // Posición del segundo cubo
+    transform1->setMatrix(matrix1);
+    transform2->setMatrix(matrix2);
 
     // Crear un nodo raíz de la escena
     osg::ref_ptr<osg::Group> root = new osg::Group;
-    root->addChild(rotationTransform.get());
+    root->addChild(transform1.get());
+    root->addChild(transform2.get());
 
     // Crear un visor OSG
     osgViewer::Viewer viewer;
@@ -99,12 +122,14 @@ int main() {
     // Establecer la escena a renderizar
     viewer.setSceneData(root.get());
 
-    // Bucle para rotar el cubo
+    // Bucle para rotar los cubos
     while (!viewer.done()) {
         double time = viewer.elapsedTime();
-        osg::Matrix rotationMatrix;
-        rotationMatrix.makeRotate(time * 0.5, osg::Vec3(0.5, 1.0, 0.0)); // Rotación sobre el eje Y
-        rotationTransform->setMatrix(rotationMatrix);
+        osg::Matrix rotationMatrix1, rotationMatrix2;
+        rotationMatrix1.makeRotate(time * 0.5, osg::Vec3(0.5, 1.0, 0.0)); // Rotación del primer cubo sobre el eje Y
+        rotationMatrix2.makeRotate(time * -0.5, osg::Vec3(1.0, 0.5, 0.0)); // Rotación del segundo cubo sobre el eje X
+        transform1->setMatrix(matrix1 * rotationMatrix1);
+        transform2->setMatrix(matrix2 * rotationMatrix2);
         viewer.frame();
     }
 

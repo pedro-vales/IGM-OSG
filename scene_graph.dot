@@ -5,8 +5,15 @@ bgcolor=transparent;
 2[shape="record" ,label="<top> Geode" ,style="solid, filled" ,color="yellow" ,fillColor="black"]
 3[shape="record" ,label="<top> Geometry" ,style="solid, filled" ,color="lightblue" ,fillColor="black"]
 4[shape="Mrecord" ,label="<top> StateSet" ,style="solid, filled" ,color="green" ,fillColor="black"]
+5[shape="record" ,label="<top> MatrixTransform" ,style="solid, filled" ,color="yellow" ,fillColor="black"]
+6[shape="record" ,label="<top> Geode" ,style="solid, filled" ,color="yellow" ,fillColor="black"]
+7[shape="record" ,label="<top> Geometry" ,style="solid, filled" ,color="lightblue" ,fillColor="black"]
 3:top -> 4:top [style=""];
 2:top -> 3:top [style=""];
 1:top -> 2:top [style=""];
+7:top -> 4:top [style=""];
+6:top -> 7:top [style=""];
+5:top -> 6:top [style=""];
 0:top -> 1:top [style=""];
+0:top -> 5:top [style=""];
 }
