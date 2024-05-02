@@ -65,6 +65,19 @@ int main() {
     // Crear la geometría del cubo
     osg::ref_ptr<osg::Geometry> cubeGeometry = createTexturedCube(1.0f);
 
+    // Carga la textura
+    osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
+    osg::ref_ptr<osg::Image> image = osgDB::readImageFile("texture.jpg");
+    if (image) {
+        texture->setImage(image.get());
+    } else {
+        osg::notify(osg::NOTICE) << "Failed to load texture." << std::endl;
+        return 1;
+    }
+
+    // Aplica la textura al cubo
+    cubeGeometry->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture.get());
+
     // Crear un nodo Geode para contener la geometría
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
     geode->addDrawable(cubeGeometry.get());
