@@ -5,6 +5,8 @@
 #include <osgDB/ReadFile>
 #include <osgGA/TrackballManipulator>
 #include <osg/MatrixTransform>
+#include <osgUtil/Optimizer>
+#include <osgDB/WriteFile>
 
 osg::Geometry* createTexturedCube(float size) {
     osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array(8);
@@ -60,28 +62,28 @@ osg::Geometry* createTexturedCube(float size) {
 }
 
 int main() {
-    // Crea un visor OSG
-    osgViewer::Viewer viewer;
-
-    // Crea la geometría del cubo y aplica la textura
+    // Crear la geometría del cubo
     osg::ref_ptr<osg::Geometry> cubeGeometry = createTexturedCube(1.0f);
 
-    // Crea un nodo Geode para contener la geometría
+    // Crear un nodo Geode para contener la geometría
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
     geode->addDrawable(cubeGeometry.get());
 
-    // Crea un nodo MatrixTransform para manejar la rotación
+    // Crear un nodo MatrixTransform para manejar la rotación
     osg::ref_ptr<osg::MatrixTransform> rotationTransform = new osg::MatrixTransform;
     rotationTransform->addChild(geode.get());
 
-    // Añade el nodo MatrixTransform al nodo raíz de la escena
+    // Crear un nodo raíz de la escena
     osg::ref_ptr<osg::Group> root = new osg::Group;
     root->addChild(rotationTransform.get());
 
-    // Establece una manipulación de cámara para permitir la interacción del usuario
+    // Crear un visor OSG
+    osgViewer::Viewer viewer;
+
+    // Establecer una manipulación de cámara para permitir la interacción del usuario
     viewer.setCameraManipulator(new osgGA::TrackballManipulator);
 
-    // Establece la escena a renderizar
+    // Establecer la escena a renderizar
     viewer.setSceneData(root.get());
 
     // Bucle para rotar el cubo
@@ -92,6 +94,9 @@ int main() {
         rotationTransform->setMatrix(rotationMatrix);
         viewer.frame();
     }
+
+    // Escribir el grafo de la escena en un archivo .osgt
+    osgDB::writeNodeFile(*root, "scene_graph.osgt");
 
     return 0;
 }

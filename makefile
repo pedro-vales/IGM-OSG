@@ -1,6 +1,6 @@
 CC=g++
 CXXFLAGS=-std=c++11 -Wall -I/usr/include
-LDFLAGS=-losg -losgViewer -losgDB -losgGA -lGL -lGLU -lglfw -lGLEW
+LDFLAGS=-losg -losgViewer -losgDB -losgGA -losgUtil -lGL -lGLU -lglfw -lGLEW
 
 SOURCES=spinningcubeosg.cpp
 EXECUTABLE=spinningcubeosg
