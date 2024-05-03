@@ -8,6 +8,36 @@
 #include <osgUtil/Optimizer>
 #include <osgDB/WriteFile>
 
+//Cubo estático que representará la fuente de luz
+osg::Geometry* createStaticCube(float size) {
+    osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array(8);
+    (*vertices)[0].set(-size, -size, -size);
+    (*vertices)[1].set(size, -size, -size);
+    (*vertices)[2].set(size, size, -size);
+    (*vertices)[3].set(-size, size, -size);
+    (*vertices)[4].set(-size, -size, size);
+    (*vertices)[5].set(size, -size, size);
+    (*vertices)[6].set(size, size, size);
+    (*vertices)[7].set(-size, size, size);
+
+    osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array(1);
+    (*colors)[0] = osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+    geom->setVertexArray(vertices.get());
+    geom->setColorArray(colors.get(), osg::Array::BIND_OVERALL);
+
+    osg::ref_ptr<osg::DrawElementsUInt> faces = new osg::DrawElementsUInt(GL_QUADS, 24);
+    faces->push_back(0); faces->push_back(1); faces->push_back(2); faces->push_back(3); // Front
+    faces->push_back(7); faces->push_back(6); faces->push_back(5); faces->push_back(4); // Back
+    faces->push_back(0); faces->push_back(4); faces->push_back(5); faces->push_back(1); // Bottom
+    faces->push_back(3); faces->push_back(2); faces->push_back(6); faces->push_back(7); // Top
+    faces->push_back(1); faces->push_back(5); faces->push_back(6); faces->push_back(2); // Right
+    faces->push_back(0); faces->push_back(3); faces->push_back(7); faces->push_back(4); // Left
+
+    geom->addPrimitiveSet(faces.get());
+    return geom.release();
+}
+
 osg::Geometry* createTexturedCube(float size) {
     osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array(8);
     (*vertices)[0].set(-size, -size, -size);
@@ -108,8 +138,30 @@ int main() {
     transform1->setMatrix(matrix1);
     transform2->setMatrix(matrix2);
 
-    // Crear un nodo raíz de la escena
+    // Crear un nodo para la fuente de luz
+    osg::ref_ptr<osg::Light> light = new osg::Light;
+    light->setLightNum(0);
+    light->setPosition(osg::Vec4(0.0f, 0.0f, 5.0f, 1.0f));
+    light->setAmbient(osg::Vec4(0.5f, 0.5f, 0.5f, 1.0f));
+    light->setDiffuse(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    light->setSpecular(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
+    lightSource->setLight(light.get());
+
+    // Crear un nodo para el cubo estático que actúa como la fuente de luz
+    osg::ref_ptr<osg::Geometry> lightCube = createStaticCube(0.2f);
+    osg::ref_ptr<osg::Geode> lightGeode = new osg::Geode;
+    lightGeode->addDrawable(lightCube.get());
+    osg::ref_ptr<osg::MatrixTransform> lightTransform = new osg::MatrixTransform;
+    lightTransform->addChild(lightGeode.get());
+    osg::Matrix cubeLightMatrix = osg::Matrix::translate(osg::Vec3(0.0f, 0.0f, 5.0f));
+    lightTransform->setMatrix(cubeLightMatrix);
+
+    // Añadir la fuente de luz y el cubo de luz al nodo raíz
     osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(lightSource.get());
+    root->addChild(lightTransform.get());
     root->addChild(transform1.get());
     root->addChild(transform2.get());
 
